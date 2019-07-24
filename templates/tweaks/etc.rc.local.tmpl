@@ -35,6 +35,8 @@ echo "Hostname        : $(hostname)" >>/etc/motd
 # search interfaces that are connected
 #
 echo >>/etc/motd
+sed -i "s/'/ /g;s/,/ /g;s/\`/ /g;" /etc/motd >/dev/null 2>&1
+
 for net_interface in $(ip link show | grep eth | grep UP | awk '{print $2}' | sed 's/://g'); do
     sLine=""
     # IPv4
@@ -53,7 +55,7 @@ done
 echo >>/etc/motd
 
 # Disable TSO & GSO for all interfaces
-if (type -P ethtool >/dev/null); then
+if (type ethtool >/dev/null); then
     for inet in $(echo "$(ip link show)" | grep -E '^([1-9]]?)\:\ ([a-z]?)' | awk '{ print $2 }' | sed 's/://g;'); do
         case "${inet}" in
             'lo' | tun* | tap*) continue ;;
