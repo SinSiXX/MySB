@@ -59,7 +59,7 @@ echo
 [ -z "${gsNewServerSshPort}" ] && gfnQuestionGetString NO "${Migrate_NewServerSshPort[*]}" gsNewServerSshPort "${gsPort_SSH}"
 
 #### VARs
-sRsyncOptions=(-av --partial --append --progress --delete --delete-before)
+sRsyncOptions=(-rlptgoDv4PHz --append --delete --delete-before)
 sSshOptions=(-p "${gsNewServerSshPort}" -c aes128-ctr -x -o "Compression=yes" -o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null")
 sScpOptions=(-P "${gsNewServerSshPort}" -o "Compression=yes" -o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null")
 
@@ -87,7 +87,7 @@ if (! sshpass -p "" scp ${sScpOptions[*]} /tmp/remote_authorized_keys root@${gsN
 fi
 
 #### Synchro type
-sChoices=('check' 'before' 'after' 'reset_passwd' 'rename')
+sChoices=('check' 'before' 'after' 'reset_passwd')
 if (! grep -q "${gsSynchroType}" <<<"${sChoices[*]}" ); then
     echo
     gfnQuestionGetString NO "${Migrate_SynchroType[*]}" gsSynchroType
@@ -350,14 +350,6 @@ function fnVarWww() {
     fi
 }
 
-#### New server rename
-function fnRenameNewServer() {
-    clear
-    echo -e "${Migrate_NewServerRename[*]}"
-    echo -e "${Migrate_NewServerLinkToDoc[*]}"
-    echo
-}
-
 case "${gsSynchroType}" in
     'check') echo -e "${Migrate_CheckOK[*]}" ;;
     'before')
@@ -387,6 +379,7 @@ case "${gsSynchroType}" in
             gfnManageQuota '-v'
         "
         touch "${MySB_InstallDir}"/files/migrate_before.lock
+        gfnSendMail "${Migrate_SyncBeforeDone[*]}" "${gsMainUserName}" "migrate_begore"
         ;;
     'after')
         [ ! -f "${MySB_InstallDir}"/files/migrate_before.lock ] && {
@@ -413,14 +406,6 @@ case "${gsSynchroType}" in
             . ${MySB_RemoteDir}/inc/vars
             . ${MySB_RemoteDir}/inc/funcs_by_script/funcs_Upgrade
             gfnUpgradeInProgress off
-        "
-        ;;
-    'rename')
-        fnRenameNewServer
-        ssh ${sSshOptions[*]} root@${gsNewServerIp} "
-            echo \"${gsNewServerIp} ${gsHostNameFqdn}\" >>/etc/hosts
-            . ${MySB_RemoteDir}/inc/vars
-            . ${MySB_RemoteDir}/inc/funcs_by_script/funcs_Upgrade
             gfnChangeFQDN \"${gsHostNameFqdn}\"
         "
         ;;
