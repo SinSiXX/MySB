@@ -4,6 +4,7 @@ logs/
 !logs/files/dnscrypt-resolvers/logs/
 .idea/
 tools/
+.bfg/
 .etc/
 .root/
 .vscode/
